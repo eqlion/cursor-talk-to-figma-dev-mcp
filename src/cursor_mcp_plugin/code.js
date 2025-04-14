@@ -2424,6 +2424,6 @@ async function deleteMultipleNodes(params) {
     totalNodes: nodeIds.length,
     results: results,
     completedInChunks: chunks.length,
-    commandId
+    commandId,
   };
 }

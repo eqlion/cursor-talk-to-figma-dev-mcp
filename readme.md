@@ -1,6 +1,6 @@
-# Cursor Talk to Figma MCP
+# Cursor Talk to Figma Dev MCP
 
-This project implements a Model Context Protocol (MCP) integration between Cursor AI and Figma, allowing Cursor to communicate with Figma for reading designs and modifying them programmatically.
+This project implements a Model Context Protocol (MCP) integration between Cursor AI and Figma Dev mode, allowing Cursor to communicate with Figma for reading designs.
 
 https://github.com/user-attachments/assets/129a14d2-ed73-470f-9a4c-2240b2a4885c
 
@@ -12,58 +12,30 @@ https://github.com/user-attachments/assets/129a14d2-ed73-470f-9a4c-2240b2a4885c
 
 ## Get Started
 
-1. Install Bun if you haven't already:
+### Install Bun if you haven't already:
 
 ```bash
 curl -fsSL https://bun.sh/install | bash
 ```
 
-2. Run setup, this will also install MCP in your Cursor's active project
-
-```bash
-bun setup
-```
-
-3. Start the Websocket server
-
-```bash
-bun socket
-```
-
-4. MCP server
-
-```bash
-bunx cursor-talk-to-figma-mcp
-```
-
-5. Install [Figma Plugin](#figma-plugin)
-
-## Quick Video Tutorial
-
-[![image](images/tutorial.jpg)](https://www.linkedin.com/posts/sonnylazuardi_just-wanted-to-share-my-latest-experiment-activity-7307821553654657024-yrh8)
-
-## Design Automation Example
-
-**Bulk text content replacement**
-
-Thanks to [@dusskapark](https://github.com/dusskapark) for contributing the bulk text replacement feature. Here is the [demo video](https://www.youtube.com/watch?v=j05gGT3xfCs).
-
-## Manual Setup and Installation
-
 ### MCP Server: Integration with Cursor
 
 Add the server to your Cursor MCP configuration in `~/.cursor/mcp.json`:
+
+Run `which bun` to get the path for the `"command"`
 
 ```json
 {
   "mcpServers": {
     "TalkToFigma": {
-      "command": "bunx",
-      "args": ["cursor-talk-to-figma-mcp@latest"]
+      "command": "/Users/YOURUSERNAME/.bun/bin/bun",
+      "args": ["/Users/YOURUSERNAME/path/to/cursor-talk-to-figma-dev-mcp/src/talk_to_figma_mcp/server.ts"]
     }
   }
 }
 ```
+
+Alternatively go to Cursor > Settings... > Cursor Settings > MCP and select "Add new global MCP server"
 
 ### WebSocket Server
 
@@ -75,31 +47,11 @@ bun socket
 
 ### Figma Plugin
 
-1. In Figma, go to Plugins > Development > New Plugin
-2. Choose "Link existing plugin"
-3. Select the `src/cursor_mcp_plugin/manifest.json` file
-4. The plugin should now be available in your Figma development plugins
-
-## Windows + WSL Guide
-
-1. Install bun via powershell
-
-```bash
-powershell -c "irm bun.sh/install.ps1|iex"
-```
-
-2. Uncomment the hostname `0.0.0.0` in `src/socket.ts`
-
-```typescript
-// uncomment this to allow connections in windows wsl
-hostname: "0.0.0.0",
-```
-
-3. Start the websocket
-
-```bash
-bun socket
-```
+1. Switch to Dev Mode
+2. In the right side bar select "Plugins" and switch to "Development"
+3. Choose "Import plugin from manifest..."
+4. Select the `src/cursor_mcp_plugin/manifest.json` file
+5. The plugin should now be available in your Figma development plugins
 
 ## Usage
 
@@ -123,42 +75,17 @@ The MCP server provides the following tools for interacting with Figma:
 ### Annotations
 
 - `get_annotations` - Get all annotations in the current document or specific node
-- `set_annotation` - Create or update an annotation with markdown support
-- `set_multiple_annotations` - Batch create/update multiple annotations efficiently
 - `scan_nodes_by_types` - Scan for nodes with specific types (useful for finding annotation targets)
-
-### Creating Elements
-
-- `create_rectangle` - Create a new rectangle with position, size, and optional name
-- `create_frame` - Create a new frame with position, size, and optional name
-- `create_text` - Create a new text node with customizable font properties
 
 ### Modifying text content
 
 - `scan_text_nodes` - Scan text nodes with intelligent chunking for large designs
-- `set_text_content` - Set the text content of a single text node
-- `set_multiple_text_contents` - Batch update multiple text nodes efficiently
-
-### Styling
-
-- `set_fill_color` - Set the fill color of a node (RGBA)
-- `set_stroke_color` - Set the stroke color and weight of a node
-- `set_corner_radius` - Set the corner radius of a node with optional per-corner control
-
-### Layout & Organization
-
-- `move_node` - Move a node to a new position
-- `resize_node` - Resize a node with new dimensions
-- `delete_node` - Delete a node
-- `delete_multiple_nodes` - Delete multiple nodes at once efficiently
-- `clone_node` - Create a copy of an existing node with optional position offset
 
 ### Components & Styles
 
 - `get_styles` - Get information about local styles
 - `get_local_components` - Get information about local components
 - `get_team_components` - Get information about team components
-- `create_component_instance` - Create an instance of a component
 
 ### Export & Advanced
 
@@ -216,3 +143,7 @@ When working with the Figma MCP:
 ## License
 
 MIT
+
+## Acknowledgments
+
+This project is based on [cursor-talk-to-figma-mcp](https://github.com/sonnylazuardi/cursor-talk-to-figma-mcp) by [Sonny Lazuardi](https://github.com/sonnylazuardi), which is licensed under the MIT License.

@@ -38,7 +38,19 @@ function sendProgressUpdate(commandId, commandType, status, progress, totalItems
 }
 
 // Show UI
-figma.showUI(__html__, { width: 350, height: 450 });
+if (figma.editorType === 'dev') {
+  figma.showUI(__html__, { 
+    width: 350, 
+    height: 450,
+    themeColors: true,
+    title: "Cursor MCP Plugin"
+  });
+} else {
+  figma.showUI(__html__, { 
+    width: 350, 
+    height: 450 
+  });
+}
 
 // Plugin commands from UI
 figma.ui.onmessage = async (msg) => {

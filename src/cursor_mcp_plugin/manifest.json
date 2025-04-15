@@ -1,14 +1,20 @@
 {
-  "name": "Cursor MCP Plugin",
-  "id": "cursor-mcp-plugin",
+  "name": "Cursor Dev MCP Plugin",
+  "id": "cursor-mcp-dev-plugin",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",
   "editorType": [
     "figma",
-    "figjam"
+    "dev"
   ],
-  "permissions": [],
+  "permissions": [
+    "currentuser",
+    "activeusers"
+  ],
+  "capabilities": [
+    "inspect"
+  ],
   "networkAccess": {
     "allowedDomains": [
       "https://google.com"

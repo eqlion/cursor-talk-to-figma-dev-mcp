@@ -12,46 +12,67 @@ https://github.com/user-attachments/assets/129a14d2-ed73-470f-9a4c-2240b2a4885c
 
 ## Get Started
 
-### Install Bun if you haven't already:
+### Repo setup
 
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
+1. Install [Bun](https://bun.sh/) if you haven’t already:
 
-### MCP Server: Integration with Cursor
+   ```bash
+   curl -fsSL https://bun.sh/install | bash
+   ```
 
-Add the server to your Cursor MCP configuration in `~/.cursor/mcp.json`:
+2. Clone the repo and navigate to the folder:
 
-Run `which bun` to get the path for the `"command"`
+   ```bash
+   git clone git@github.com:eqlion/cursor-talk-to-figma-dev-mcp.git
+   cd cursor-talk-to-figma-dev-mcp
+   ```
 
-```json
-{
-  "mcpServers": {
-    "TalkToFigma": {
-      "command": "/Users/YOURUSERNAME/.bun/bin/bun",
-      "args": ["/Users/YOURUSERNAME/path/to/cursor-talk-to-figma-dev-mcp/src/talk_to_figma_mcp/server.ts"]
-    }
-  }
-}
-```
+3. Install JS dependencies:
 
-Alternatively go to Cursor > Settings... > Cursor Settings > MCP and select "Add new global MCP server"
+   ```bash
+   bun install
+   ```
 
-### WebSocket Server
+4. Start the WebSocket server (used for communication between the Figma plugin and the MCP server):
 
-Start the WebSocket server:
+   ```bash
+   bun socket
+   ```
 
-```bash
-bun socket
-```
+5. Add the server to your Cursor MCP config at `~/.cursor/mcp.json`:
+
+   Run `which bun` to find the full path to `"command"`, then update your config:
+
+   ```json
+   {
+     "mcpServers": {
+       "TalkToFigma": {
+         "command": "/Users/YOURUSERNAME/.bun/bin/bun",
+         "args": [
+           "/Users/YOURUSERNAME/path/to/cursor-talk-to-figma-dev-mcp/src/talk_to_figma_mcp/server.ts"
+         ]
+       }
+     }
+   }
+   ```
+
+   Alternatively, go to Cursor > Settings… > Cursor Settings > MCP and click “Add new global MCP server.”
+
+   You might need to refresh the server connection if it doesn’t connect right away.
+
+6. Done! You’re all set.
 
 ### Figma Plugin
 
-1. Switch to Dev Mode
-2. In the right side bar select "Plugins" and switch to "Development"
-3. Choose "Import plugin from manifest..."
-4. Select the `src/cursor_mcp_plugin/manifest.json` file
-5. The plugin should now be available in your Figma development plugins
+1. Open any Figma file you want to use.
+2. Switch to dev mode (if not already enabled).
+3. In the right pane, go to “Plugins”.
+4. In the Plugins section:
+   - Switch to **Development**,
+   - Click **New**,
+   - Choose **“Import plugin from manifest…”**
+5. In the file dialog, navigate to the repo folder, open the `cursor_mcp_plugin` directory, and select `manifest.json`.
+6. If everything was configured correctly, the plugin should now be active.
 
 ## Usage
 
@@ -115,30 +136,25 @@ When working with the Figma MCP:
 1. Always join a channel before sending commands
 2. Get document overview using `get_document_info` first
 3. Check current selection with `get_selection` before modifications
-4. Use appropriate creation tools based on needs:
-   - `create_frame` for containers
-   - `create_rectangle` for basic shapes
-   - `create_text` for text elements
-5. Verify changes using `get_node_info`
-6. Use component instances when possible for consistency
-7. Handle errors appropriately as all commands can throw exceptions
-8. For large designs:
+4. Verify changes using `get_node_info`
+5. Use component instances when possible for consistency
+6. Handle errors appropriately as all commands can throw exceptions
+7. For large designs:
    - Use chunking parameters in `scan_text_nodes`
    - Monitor progress through WebSocket updates
    - Implement appropriate error handling
-9. For text operations:
+8. For text operations:
    - Use batch operations when possible
    - Consider structural relationships
    - Verify changes with targeted exports
-10. For converting legacy annotations:
-    - Scan text nodes to identify numbered markers and descriptions
-    - Use `scan_nodes_by_types` to find UI elements that annotations refer to
-    - Match markers with their target elements using path, name, or proximity
-    - Categorize annotations appropriately with `get_annotations` 
-    - Create native annotations with `set_multiple_annotations` in batches
-    - Verify all annotations are properly linked to their targets
-    - Delete legacy annotation nodes after successful conversion
-
+9. For converting legacy annotations:
+   - Scan text nodes to identify numbered markers and descriptions
+   - Use `scan_nodes_by_types` to find UI elements that annotations refer to
+   - Match markers with their target elements using path, name, or proximity
+   - Categorize annotations appropriately with `get_annotations`
+   - Create native annotations with `set_multiple_annotations` in batches
+   - Verify all annotations are properly linked to their targets
+   - Delete legacy annotation nodes after successful conversion
 
 ## License
 

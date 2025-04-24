@@ -1,17 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "rootDir": ".",
     "declaration": true,
     "experimentalDecorators": false,
-    "emitDecoratorMetadata": false
+    "emitDecoratorMetadata": false,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "strict": true,
   },
   "include": ["./**/*.ts"],
   "exclude": ["node_modules", "dist"]

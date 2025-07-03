@@ -14,8 +14,7 @@ export function filterFigmaNode(node: any) {
     filtered.fills = node.fills.map((fill: any) => {
       const processedFill = { ...fill }
 
-      // Remove boundVariables and imageRef
-      delete processedFill.boundVariables
+      // Remove imageRef
       delete processedFill.imageRef
 
       // Process gradientStops if present
@@ -26,8 +25,6 @@ export function filterFigmaNode(node: any) {
           if (processedStop.color) {
             processedStop.color = rgbaToHex(processedStop.color)
           }
-          // Remove boundVariables
-          delete processedStop.boundVariables
           return processedStop
         })
       }
@@ -44,8 +41,6 @@ export function filterFigmaNode(node: any) {
   if (node.strokes && node.strokes.length > 0) {
     filtered.strokes = node.strokes.map((stroke: any) => {
       const processedStroke = { ...stroke }
-      // Remove boundVariables
-      delete processedStroke.boundVariables
       // Convert color to hex if present
       if (processedStroke.color) {
         processedStroke.color = rgbaToHex(processedStroke.color)

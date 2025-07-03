@@ -129,6 +129,16 @@ async function handleCommand(command, params) {
       return await getNodesInfo(params.nodeIds)
     case 'get_styles':
       return await getStyles()
+    case 'get_styles_by_ids':
+      if (!params || !params.styleIds || !Array.isArray(params.styleIds)) {
+        throw new Error('Missing or invalid styleIds parameter')
+      }
+      return await getStylesByIds(params.styleIds)
+    case 'get_variables_by_ids':
+      if (!params || !params.variableIds || !Array.isArray(params.variableIds)) {
+        throw new Error('Missing or invalid variableIds parameter')
+      }
+      return await getVariablesByIds(params.variableIds)
     case 'get_local_components':
       return await getLocalComponents()
     // case "get_team_components":
@@ -198,7 +208,11 @@ async function getNodeInfo(nodeId) {
     format: 'JSON_REST_V1',
   })
 
-  return response.document
+  return {
+    document: response.document,
+    styles: response.styles || {},
+    componentSets: response.componentSets || {},
+  }
 }
 
 async function getNodesInfo(nodeIds) {
@@ -260,6 +274,148 @@ async function getStyles() {
       name: style.name,
       key: style.key,
     })),
+  }
+}
+
+async function getStylesByIds(styleIds) {
+  try {
+    // Process all style IDs in parallel
+    const styles = await Promise.all(
+      styleIds.map(async (styleId) => {
+        try {
+          const style = await figma.getStyleByIdAsync(styleId)
+          
+          if (!style) {
+            return {
+              id: styleId,
+              error: `Style not found with ID: ${styleId}`,
+            }
+          }
+
+          // Base properties common to all styles
+          const baseStyle = {
+            id: style.id,
+            name: style.name,
+            key: style.key,
+            type: style.type,
+            description: style.description || '',
+            remote: style.remote || false,
+          }
+
+          // Add type-specific properties
+          switch (style.type) {
+            case 'PAINT':
+              return Object.assign({}, baseStyle, {
+                paints: style.paints || [],
+                // Add first paint for convenience (matching getStyles format)
+                paint: style.paints && style.paints[0] ? style.paints[0] : null,
+              })
+            
+            case 'TEXT':
+              return Object.assign({}, baseStyle, {
+                fontSize: style.fontSize,
+                fontName: style.fontName,
+                textAlignHorizontal: style.textAlignHorizontal,
+                textAlignVertical: style.textAlignVertical,
+                letterSpacing: style.letterSpacing,
+                lineHeight: style.lineHeight,
+                paragraphIndent: style.paragraphIndent,
+                paragraphSpacing: style.paragraphSpacing,
+                textCase: style.textCase,
+                textDecoration: style.textDecoration,
+                fills: style.fills || [],
+              })
+            
+            case 'EFFECT':
+              return Object.assign({}, baseStyle, {
+                effects: style.effects || [],
+              })
+            
+            case 'GRID':
+              return Object.assign({}, baseStyle, {
+                layoutGrids: style.layoutGrids || [],
+              })
+            
+            default:
+              // Return base properties for unknown style types
+              return baseStyle
+          }
+        } catch (styleError) {
+          return {
+            id: styleId,
+            error: `Error getting style: ${styleError.message}`,
+          }
+        }
+      })
+    )
+
+    return {
+      styles,
+      count: styles.length,
+      successCount: styles.filter(style => !style.error).length,
+      errorCount: styles.filter(style => style.error).length,
+    }
+  } catch (error) {
+    throw new Error(`Error getting styles by IDs: ${error.message}`)
+  }
+}
+
+async function getVariablesByIds(variableIds) {
+  try {
+    // Process all variable IDs in parallel
+    const variables = await Promise.all(
+      variableIds.map(async (variableId) => {
+        try {
+          const variable = await figma.variables.getVariableByIdAsync(variableId)
+          
+          if (!variable) {
+            return {
+              id: variableId,
+              error: `Variable not found with ID: ${variableId}`,
+            }
+          }
+
+          // Get variable collection info
+          const collection = await figma.variables.getVariableCollectionByIdAsync(variable.variableCollectionId)
+
+          return {
+            id: variable.id,
+            name: variable.name,
+            key: variable.key,
+            variableCollectionId: variable.variableCollectionId,
+            resolvedType: variable.resolvedType,
+            valuesByMode: variable.valuesByMode,
+            remote: variable.remote || false,
+            description: variable.description || '',
+            hiddenFromPublishing: variable.hiddenFromPublishing || false,
+            scopes: variable.scopes || [],
+            codeSyntax: variable.codeSyntax || {},
+            collection: collection ? {
+              id: collection.id,
+              name: collection.name,
+              modes: collection.modes.map(mode => ({
+                modeId: mode.modeId,
+                name: mode.name
+              }))
+            } : null
+          }
+        } catch (variableError) {
+          return {
+            id: variableId,
+            error: `Error getting variable: ${variableError.message}`,
+          }
+        }
+      })
+    )
+
+    return {
+      variables,
+      count: variables.length,
+      successCount: variables.filter(variable => !variable.error).length,
+      errorCount: variables.filter(variable => variable.error).length,
+    }
+  } catch (error) {
+    throw new Error(`Error getting variables by IDs: ${error.message}`)
   }
 }
 

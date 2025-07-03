@@ -13,12 +13,21 @@ export const registerGetNodeInfo = (server: McpServer) => {
     },
     async ({ nodeId }) => {
       try {
-        const result = await figmaClient.sendCommandToFigma('get_node_info', { nodeId })
+        const result = (await figmaClient.sendCommandToFigma('get_node_info', { nodeId })) as {
+          document: Record<string, unknown>
+          styles: Record<string, unknown>
+          componentSets: Record<string, unknown>
+        }
+        const document = filterFigmaNode(result.document)
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(filterFigmaNode(result)),
+              text: JSON.stringify({
+                document,
+                styles: result.styles,
+                componentSets: result.componentSets,
+              }),
             },
           ],
         }

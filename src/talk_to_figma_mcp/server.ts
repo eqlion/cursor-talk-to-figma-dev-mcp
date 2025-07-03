@@ -13,6 +13,8 @@ import {
   registerGetNodesInfo,
   registerExportNodeAsImage,
   registerGetStyles,
+  registerGetStylesByIds,
+  registerGetVariablesByIds,
   registerGetLocalComponents,
   registerGetAnnotations,
   registerScanTextNodes,
@@ -34,6 +36,8 @@ registerGetNodeInfo(server)
 registerGetNodesInfo(server)
 registerExportNodeAsImage(server)
 registerGetStyles(server)
+registerGetStylesByIds(server)
+registerGetVariablesByIds(server)
 registerGetLocalComponents(server)
 registerGetAnnotations(server)
 registerScanTextNodes(server)

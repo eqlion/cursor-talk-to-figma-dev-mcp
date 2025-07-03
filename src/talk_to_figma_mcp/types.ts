@@ -28,6 +28,8 @@ export type FigmaCommand =
   | 'get_selection'
   | 'get_node_info'
   | 'get_styles'
+  | 'get_styles_by_ids'
+  | 'get_variables_by_ids'
   | 'get_local_components'
   | 'get_team_components'
   | 'export_node_as_image'

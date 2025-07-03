@@ -15,7 +15,11 @@ export const registerGetNodesInfo = (server: McpServer) => {
       try {
         const results = await Promise.all(
           nodeIds.map(async (nodeId) => {
-            const result = await figmaClient.sendCommandToFigma('get_node_info', { nodeId })
+            const result = (await figmaClient.sendCommandToFigma('get_node_info', { nodeId })) as {
+              document: Record<string, unknown>
+              styles: Record<string, unknown>
+              componentSets: Record<string, unknown>
+            }
             return { nodeId, info: result }
           })
         )
@@ -23,7 +27,17 @@ export const registerGetNodesInfo = (server: McpServer) => {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(results.map((result) => filterFigmaNode(result.info))),
+              text: JSON.stringify(
+                results.map((result) => {
+                  const document = filterFigmaNode(result.info.document)
+                  return {
+                    nodeId: result.nodeId,
+                    document,
+                    styles: result.info.styles,
+                    componentSets: result.info.componentSets,
+                  }
+                })
+              ),
             },
           ],
         }

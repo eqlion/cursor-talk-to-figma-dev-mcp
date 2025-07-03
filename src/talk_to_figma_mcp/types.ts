@@ -37,3 +37,4 @@ export type FigmaCommand =
   | 'scan_text_nodes'
   | 'get_annotations'
   | 'scan_nodes_by_types'
+  | 'get_component_instances_info'

@@ -20,6 +20,7 @@ import {
   registerScanTextNodes,
   registerScanNodesByTypes,
   registerJoinChannel,
+  registerGetComponentInstancesInfo,
 } from './tools'
 import { registerReadDesignStrategy } from './prompts'
 
@@ -43,6 +44,7 @@ registerGetAnnotations(server)
 registerScanTextNodes(server)
 registerScanNodesByTypes(server)
 registerJoinChannel(server)
+registerGetComponentInstancesInfo(server)
 // Prompts
 registerReadDesignStrategy(server)
 

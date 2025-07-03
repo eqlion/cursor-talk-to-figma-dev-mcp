@@ -151,6 +151,11 @@ async function handleCommand(command, params) {
       return await getAnnotations(params)
     case 'scan_nodes_by_types':
       return await scanNodesByTypes(params)
+    case 'get_component_instances_info':
+      if (!params || !params.nodeIds || !Array.isArray(params.nodeIds)) {
+        throw new Error('Missing or invalid nodeIds parameter')
+      }
+      return await getComponentInstancesInfo(params.nodeIds, params.includeOverrides)
     default:
       throw new Error(`Unknown command: ${command}`)
   }
@@ -1171,4 +1176,192 @@ async function findNodesByTypes(node, types, matchingNodes = []) {
       await findNodesByTypes(child, types, matchingNodes)
     }
   }
+}
+
+async function getComponentInstancesInfo(nodeIds, includeOverrides = true) {
+  try {
+    // Process all node IDs in parallel
+    const instances = await Promise.all(
+      nodeIds.map(async (nodeId) => {
+        try {
+          const node = await figma.getNodeByIdAsync(nodeId)
+          
+          if (!node) {
+            return {
+              nodeId: nodeId,
+              isInstance: false,
+              error: `Node not found with ID: ${nodeId}`,
+            }
+          }
+
+          // Check if this is a component instance
+          if (node.type !== 'INSTANCE') {
+            return {
+              nodeId: nodeId,
+              isInstance: false,
+              error: `Node is not a component instance (type: ${node.type})`,
+            }
+          }
+
+          // Extract master component information
+          const masterComponent = await node.getMainComponentAsync()
+          if (!masterComponent) {
+            return {
+              nodeId: nodeId,
+              isInstance: true,
+              error: 'Master component not found',
+            }
+          }
+
+          // Base instance info
+          const instanceInfo = {
+            nodeId: nodeId,
+            isInstance: true,
+            masterComponent: {
+              id: masterComponent.id,
+              name: masterComponent.name,
+              key: masterComponent.key,
+              componentSetId: masterComponent.parent && masterComponent.parent.type === 'COMPONENT_SET' 
+                ? masterComponent.parent.id : null,
+            },
+            componentProperties: {},
+            variantProperties: {},
+            overrides: [],
+          }
+
+          // Extract component properties
+          if (node.componentProperties) {
+            instanceInfo.componentProperties = extractComponentProperties(node.componentProperties)
+          }
+
+          // Extract variant properties (for component sets)
+          if (masterComponent.variantProperties) {
+            instanceInfo.variantProperties = extractVariantProperties(masterComponent.variantProperties)
+          }
+
+          // Extract overrides if requested
+          if (includeOverrides && node.overrides) {
+            instanceInfo.overrides = await extractOverrides(node.overrides)
+          }
+
+          return instanceInfo
+
+        } catch (nodeError) {
+          return {
+            nodeId: nodeId,
+            isInstance: false,
+            error: `Error analyzing node: ${nodeError.message}`,
+          }
+        }
+      })
+    )
+
+    // Calculate summary statistics
+    const instanceCount = instances.filter(item => item.isInstance === true && !item.error).length
+    const nonInstanceCount = instances.filter(item => item.isInstance === false).length
+    const errorCount = instances.filter(item => item.error).length
+
+    return {
+      instances,
+      count: instances.length,
+      instanceCount,
+      nonInstanceCount,
+      errorCount,
+    }
+
+  } catch (error) {
+    throw new Error(`Error getting component instances info: ${error.message}`)
+  }
+}
+
+// Helper function to extract component properties
+function extractComponentProperties(componentProperties) {
+  const properties = {}
+  
+  for (const [key, value] of Object.entries(componentProperties)) {
+    // Handle different property types
+    if (typeof value === 'object' && value !== null) {
+      if ('type' in value) {
+        switch (value.type) {
+          case 'BOOLEAN':
+            properties[key] = value.value
+            break
+          case 'TEXT':
+            properties[key] = value.value
+            break
+          case 'INSTANCE_SWAP':
+            properties[key] = value.value ? value.value.name : null
+            break
+          default:
+            properties[key] = value.value
+        }
+      } else {
+        properties[key] = value
+      }
+    } else {
+      properties[key] = value
+    }
+  }
+  
+  return properties
+}
+
+// Helper function to extract variant properties  
+function extractVariantProperties(variantProperties) {
+  const properties = {}
+  
+  for (const [key, value] of Object.entries(variantProperties)) {
+    properties[key] = value
+  }
+  
+  return properties
+}
+
+// Helper function to extract overrides
+async function extractOverrides(overrides) {
+  const overridesList = []
+  
+  for (const override of overrides) {
+    try {
+      const overrideInfo = {
+        id: override.id,
+        type: override.overriddenFields && override.overriddenFields[0] || 'UNKNOWN',
+      }
+
+      // Handle different override types
+      if (override.overriddenFields) {
+        override.overriddenFields.forEach(field => {
+          switch (field) {
+            case 'characters':
+              overrideInfo.type = 'TEXT'
+              overrideInfo.property = 'characters'
+              overrideInfo.value = override.node ? override.node.characters : 'N/A'
+              break
+            case 'fills':
+              overrideInfo.type = 'FILL'
+              overrideInfo.property = 'fills'
+              overrideInfo.value = override.node ? override.node.fills : 'N/A'
+              break
+            case 'mainComponent':
+              overrideInfo.type = 'INSTANCE_SWAP'
+              overrideInfo.property = 'instance'
+              overrideInfo.value = override.node && override.node.masterComponent 
+                ? override.node.masterComponent.name : 'N/A'
+              break
+            default:
+              overrideInfo.property = field
+              overrideInfo.value = 'N/A'
+          }
+        })
+      }
+
+      overridesList.push(overrideInfo)
+      
+    } catch (overrideError) {
+      console.error('Error processing override:', overrideError)
+      // Continue with other overrides
+    }
+  }
+  
+  return overridesList
 }
